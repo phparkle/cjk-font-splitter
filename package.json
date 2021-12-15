@@ -1,7 +1,7 @@
 {
-  "name": "cjk-font-subsetter",
+  "name": "@xenyo/cjk-font-subsetter",
   "version": "1.0.0",
-  "description": "Split CJK fonts for web, based on Google Fonts unicode ranges",
+  "description": "Split CJK fonts for the web, based on unicode ranges from Google Fonts",
   "source": "src/index.js",
   "main": "dist/index.js",
   "type": "module",
