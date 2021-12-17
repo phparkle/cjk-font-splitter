@@ -47,6 +47,7 @@
     "parcel": "^2.0.1"
   },
   "dependencies": {
+    "archiver": "^5.3.0",
     "async": "^3.2.2",
     "axios": "^0.24.0",
     "cachios": "^3.1.1",

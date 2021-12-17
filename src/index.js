@@ -1,6 +1,7 @@
-import { join } from 'path'
+import path from 'path'
 import { promisify } from 'util'
 
+import archiver from 'archiver'
 import async from 'async'
 import * as csstree from 'css-tree'
 import fontkit from 'fontkit'
@@ -76,7 +77,7 @@ const defaultOptions = {
   inputFontFilePath: null,
   locale: 'sc',
   outputPath: null,
-  overwrite: true,
+  overwrite: false,
   srcPrefix: '../webfonts',
 }
 
@@ -137,13 +138,13 @@ const CJKFontSplitter = async (options) => {
   const inputFont = await fontkitOpen(inputFontFilePath)
 
   // Create output dirs
-  const outputDirPath = join(outputPath, inputFont.postscriptName)
+  const outputDirPath = path.join(outputPath, inputFont.postscriptName)
 
-  const cssDirPath = join(outputDirPath, 'css')
+  const cssDirPath = path.join(outputDirPath, 'css')
   console.log(`Creating output directory: ${cssDirPath}`)
   await mkdirp(cssDirPath)
 
-  const webfontsDirPath = join(outputDirPath, 'webfonts')
+  const webfontsDirPath = path.join(outputDirPath, 'webfonts')
   console.log(`Creating output directory: ${webfontsDirPath}`)
   await mkdirp(webfontsDirPath)
 
@@ -185,11 +186,11 @@ const CJKFontSplitter = async (options) => {
         srcList.push({ type: 'Operator', value: ',' })
         srcList.push({ type: 'WhiteSpace', value: ' ' })
       }
-      srcList.push({ type: 'Url', value: join(srcPrefix, outputFontFileName) })
+      srcList.push({ type: 'Url', value: path.join(srcPrefix, outputFontFileName) })
       srcList.push({ type: 'WhiteSpace', value: ' ' })
       srcList.push(csstree.fromPlainObject({ type: 'Function', name: 'format', children: [{ type: 'String', value: format.toLowerCase() }] }))
 
-      const outputFontFilePath = join(webfontsDirPath, outputFontFileName)
+      const outputFontFilePath = path.join(webfontsDirPath, outputFontFileName)
 
       if (overwrite || !(await fs.pathExists(outputFontFilePath))) {
         await piscina.run({
@@ -207,9 +208,19 @@ const CJKFontSplitter = async (options) => {
   // Output css file
   const outputCss = prettier.format(csstree.generate(ast), { parser: 'css', printWidth: Infinity })
   const outputCssFileName = `${inputFont.postscriptName}.css`
-  const outputCssFilePath = join(cssDirPath, outputCssFileName)
+  const outputCssFilePath = path.join(cssDirPath, outputCssFileName)
   console.log(`Writing css file: ${outputCssFilePath}`)
   await fs.writeFile(outputCssFilePath, outputCss)
+
+  // Create archive
+  const zipFile = fs.createWriteStream(path.join(outputPath, `${inputFont.postscriptName}.zip`))
+  const archive = archiver('zip')
+  archive.pipe(zipFile)
+  archive.directory(outputDirPath, inputFont.postscriptName)
+  console.log(`Archiving: ${zipFile.path}`)
+  await archive.finalize()
+
+  return zipFile.path
 }
 
 /**
