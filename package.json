@@ -1,6 +1,6 @@
 {
   "name": "@xenyo/cjk-font-splitter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Split CJK fonts for the web, based on unicode ranges from Google Fonts",
   "source": "src/index.js",
   "main": "dist/index.js",
